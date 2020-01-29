@@ -6,12 +6,20 @@
 #define CONTROLLER_FOLLOW_LINE 1
 #define CONTROLLER_DISTANCE_MEASURE 2
 
+#define FORWARD 0
+#define TURNING_LEFT 1
+#define TURNING_RIGHT 2
+
+#define ROBOT_SPEED 0.03	//m/s
+#define ROBOT_WHELL_SEPARATION_M 0.085
 
 int current_state = CONTROLLER_DISTANCE_MEASURE; // Change this variable to determine which controller to run
 const int threshold = 700;
 int line_left = 1000;
 int line_center = 1000;
 int line_right = 1000;
+
+int movement_direction = 0;
 
 unsigned long timer_begin = 0;
 
@@ -55,36 +63,58 @@ void measure_30cm_speed()
 
 void updateOdometry()
 {
-	// TODO
+	//double elapsed_time_s = (millis() - timer_begin) / 1000.;
+	double elapsed_time_s = 100./1000.;
+	double dist = elapsed_time_s * ROBOT_SPEED;
+	if(movement_direction == TURNING_LEFT)
+		pose_theta += (2 * dist) / ROBOT_WHEEL_SEPARATION_M;
+	else if(movement_direction == TURNING_RIGHT)
+		pose_theta -= (2 * dist) / ROBOT_WHEEL_SEPARATION_M;
+	//else we're moving forward, so no angle update
+	
+	pose_x += (ROBOT_SPEED * elapsed_time_s) * cos(pose_theta);
+	pose_y += (ROBOT_SPEED * elapsed_time_s) * sin(pose_theta);
 }
 
 void displayOdometry()
 {
-	// TODO
+	sparki.print("(");
+	sparki.print(pose_x);
+	sparki.print(",");
+	sparki.print(pose_y);
+	sparki.print(",");
+	sparki.print(pose_theta);
+	sparki.println(")");
+	sparki.clearLCD();
+	sparki.updateLCD();
 }
 void loop()
 {
-	// TODO: Insert loop timing/initialization code here
 	unsigned long loop_begin = millis();
 	
 	readSensors();
 
 	switch (current_state) {
 		case CONTROLLER_FOLLOW_LINE:
+			updateOdometry();
+			displayOdometry();
 			if ( line_left < threshold ) // if line is below left line sensor
 			{
 				sparki.moveLeft(); // turn left
+				movement_direction = TURNING_LEFT;
 			}
 			 
 			if ( line_right < threshold ) // if line is below right line sensor
 			{
 				sparki.moveRight(); // turn right
+				movement_direction = TURNING_RIGHT;
 			}
 			 
 			// if the center line sensor is the only one reading a line
 			if ( (line_center < threshold) && (line_left > threshold) && (line_right > threshold) )
 			{
 				sparki.moveForward(); // move forward
+				movement_direction = FORWARD;
 			}
 			break;
 			
