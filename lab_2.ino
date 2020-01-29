@@ -11,9 +11,9 @@
 #define TURNING_RIGHT 2
 
 #define ROBOT_SPEED 0.03	//m/s
-#define ROBOT_WHELL_SEPARATION_M 0.085
+#define ROBOT_WHEEL_SEPARATION_M 0.085
 
-int current_state = CONTROLLER_DISTANCE_MEASURE; // Change this variable to determine which controller to run
+int current_state = CONTROLLER_FOLLOW_LINE; // Change this variable to determine which controller to run
 const int threshold = 700;
 int line_left = 1000;
 int line_center = 1000;
@@ -85,7 +85,6 @@ void displayOdometry()
 	sparki.print(",");
 	sparki.print(pose_theta);
 	sparki.println(")");
-	sparki.clearLCD();
 	sparki.updateLCD();
 }
 void loop()
@@ -116,6 +115,14 @@ void loop()
 				sparki.moveForward(); // move forward
 				movement_direction = FORWARD;
 			}
+			
+			//all three -- we're at the start line, so stop
+			//TODO: loop closure
+			if ( (line_center < threshold) && (line_left < threshold) && (line_right < threshold) )
+			{
+				sparki.motorStop();
+			}
+			
 			break;
 			
 		case CONTROLLER_DISTANCE_MEASURE:
