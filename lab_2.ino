@@ -1,4 +1,4 @@
-#include <sparki.h>
+#include <Sparki.h>
 
 #define CYCLE_TIME .100// seconds
 
@@ -33,7 +33,12 @@ void readSensors()
 void measure_30cm_speed()
 {
 	unsigned long timer_begin = millis();
-	sparki.moveForward(30);//move forward 30cm
+	sparki.moveForward();
+	while(line_center < threshold)
+	{
+		delay(10);
+		readSensors();
+	}
 	unsigned long timer_end = millis();//probably won't work
 	
 	double duration_sec = (timer_end - timer_begin) / 1000.;
@@ -52,28 +57,29 @@ void displayOdometry()
 {
 	// TODO
 }
-
 void loop()
 {
 	// TODO: Insert loop timing/initialization code here
 	unsigned long loop_begin = millis();
 	
 	readSensors();
+	
+	current_state = CONTROLLER_DISTANCE_MEASURE;
 
 	switch (current_state) {
 		case CONTROLLER_FOLLOW_LINE:
-			if ( lineLeft < threshold ) // if line is below left line sensor
+			if ( line_left < threshold ) // if line is below left line sensor
 			{
 				sparki.moveLeft(); // turn left
 			}
 			 
-			if ( lineRight < threshold ) // if line is below right line sensor
+			if ( line_right < threshold ) // if line is below right line sensor
 			{
 				sparki.moveRight(); // turn right
 			}
 			 
 			// if the center line sensor is the only one reading a line
-			if ( (lineCenter < threshold) && (lineLeft > threshold) && (lineRight > threshold) )
+			if ( (line_center < threshold) && (line_left > threshold) && (line_right > threshold) )
 			{
 				sparki.moveForward(); // move forward
 			}
