@@ -7,11 +7,13 @@
 #define CONTROLLER_DISTANCE_MEASURE 2
 
 
-int current_state = CONTROLLER_FOLLOW_LINE; // Change this variable to determine which controller to run
+int current_state = CONTROLLER_DISTANCE_MEASURE; // Change this variable to determine which controller to run
 const int threshold = 700;
 int line_left = 1000;
 int line_center = 1000;
 int line_right = 1000;
+
+unsigned long timer_begin = 0;
 
 float pose_x = 0., pose_y = 0., pose_theta = 0.;
 
@@ -20,6 +22,8 @@ void setup()
 	pose_x = 0.;
 	pose_y = 0.;
 	pose_theta = 0.;
+	delay(1000);
+	timer_begin = millis();
 }
 
 void readSensors()
@@ -32,19 +36,20 @@ void readSensors()
 
 void measure_30cm_speed()
 {
-	unsigned long timer_begin = millis();
 	sparki.moveForward();
-	while(line_center < threshold)
+	if(line_center > threshold)
 	{
-		delay(10);
-		readSensors();
+		sparki.moveStop();
+		unsigned long timer_end = millis();//probably won't work
+
+		double duration_sec = (timer_end - timer_begin) / 1000.;
+		double speed = (30. * (1. / 100.)) / duration_sec;
+		sparki.print("Speed (m/s): ");
+		sparki.println(speed);
+		sparki.updateLCD();
+		current_state = CONTROLLER_FOLLOW_LINE;
+		//measured to be 0.03 m/s
 	}
-	unsigned long timer_end = millis();//probably won't work
-	
-	double duration_sec = (timer_end - timer_begin) / 1000.;
-	double speed = (30. * (1. / 100.)) / duration_sec;
-	sparki.print("Speed (m/s): ");
-	sparki.println(speed);
 }
 
 
@@ -63,8 +68,6 @@ void loop()
 	unsigned long loop_begin = millis();
 	
 	readSensors();
-	
-	current_state = CONTROLLER_DISTANCE_MEASURE;
 
 	switch (current_state) {
 		case CONTROLLER_FOLLOW_LINE:
