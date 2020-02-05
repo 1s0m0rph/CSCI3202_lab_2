@@ -65,11 +65,11 @@ void updateOdometry()
 {
   //double elapsed_time_s = (millis() - timer_begin) / 1000.;
   //double elapsed_time_s = .01;
-  double dist = .0007;//this will always be the dist traveled
+  double dist = .0003;//this will always be the dist traveled
   if(movement_direction == TURNING_LEFT)
-    pose_theta += (dist / ROBOT_AXEL_RADIUS);
+    pose_theta += ((2 * dist) / ROBOT_AXEL_RADIUS);
   else if(movement_direction == TURNING_RIGHT)
-    pose_theta -= (dist / ROBOT_AXEL_RADIUS);
+    pose_theta -= ((2 * dist) / ROBOT_AXEL_RADIUS);
   //else we're moving forward, so no angle update
   else
   {
@@ -102,7 +102,7 @@ void loop()
   unsigned long loop_begin = millis();
   
   readSensors();
-
+  
   switch (current_state) 
   {
     case CONTROLLER_FOLLOW_LINE:
@@ -110,7 +110,7 @@ void loop()
       updateOdometry();
       if( (line_center < threshold) && (line_left < threshold) && (line_right < threshold))
       {
-         close_loop();
+        close_loop();
          
       }
       else if ( line_left < threshold ) // if line is below left line sensor
@@ -136,7 +136,6 @@ void loop()
       measure_30cm_speed();
       break;
   }
-
   unsigned long loop_end = millis();
   double elapsed_time_s = (loop_end - loop_begin) / 1000.;
   double remaining_time = (elapsed_time_s >= CYCLE_TIME) ? 0 : CYCLE_TIME - elapsed_time_s;
